@@ -46,7 +46,7 @@ jobs:
       - name: Plan (fails on drift)
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: tofu plan -input=false -lock-timeout=10m -detailed-exitcode -out=tfplan
+        run: tofu plan -input=false -lock=false -detailed-exitcode -out=tfplan
 
       - name: Report the plan
         if: always()

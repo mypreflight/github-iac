@@ -55,7 +55,7 @@ jobs:
       - name: Plan
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: tofu plan -input=false -lock-timeout=10m -out=tfplan
+        run: tofu plan -input=false -lock=false -out=tfplan
 
       - name: Report the plan
         if: always()
