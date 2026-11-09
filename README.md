@@ -55,8 +55,10 @@ on), next to the other MyPreflight buckets; `infra/backend.hcl` points the S3 ba
 Spaces key `github-iac` can read and write only this bucket.
 
 Spaces ignores conditional writes, so the lock file (`use_lockfile`) does not actually stop two runs
-at once. Only `apply` writes state, and the apply workflow never runs twice in parallel (`concurrency`);
-don't apply locally while it runs.
+at once, and a run that overlaps another fails when it releases the lock. Only `apply` writes state, so
+only the apply workflow takes the lock, and it never runs twice in parallel (`concurrency`). The plan
+and drift workflows run `tofu plan -lock=false`; do the same locally, and don't apply locally while
+the apply workflow runs.
 
 State is encrypted client-side with a passphrase before upload. **Losing the passphrase means losing
 the state.** The passphrase and the Spaces key are in the macOS login keychain (account
@@ -98,7 +100,7 @@ export TF_VAR_state_passphrase="$(security find-generic-password -a mypreflight-
 export AWS_ACCESS_KEY_ID="$(security find-generic-password -a mypreflight-github-iac -s state-access-key-id -w)"
 export AWS_SECRET_ACCESS_KEY="$(security find-generic-password -a mypreflight-github-iac -s state-secret-access-key -w)"
 tofu init -backend-config=backend.hcl
-tofu plan
+tofu plan -lock=false
 ```
 
 The committed `config/*.yaml` and `infra/imports.tf` were already generated this way, and
