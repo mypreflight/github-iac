@@ -1,0 +1,9 @@
+# Organization members (authoritative for listed users).
+# Add an entry to invite someone; remove it to remove them from the org.
+# Never remove the last admin, or the account your CI token belongs to.
+
+admins:
+  user_oskar_barcz:
+    name: 'Oskar Barcz'
+    user: 'oskarbarcz'
+members: {}

@@ -1,0 +1,86 @@
+# Repositories, keyed by name. Values under `defaults` apply to every repo
+# unless the repo sets its own value. `my-repo: {}` uses defaults only.
+# Creation-only options: auto_init, gitignore_template, license_template,
+# from_template (name of a template repo in this org).
+
+defaults:
+  visibility: public
+  has_issues: true
+  has_projects: true
+  has_wiki: false
+  has_discussions: false
+  allow_merge_commit: false
+  allow_squash_merge: true
+  allow_rebase_merge: false
+  allow_auto_merge: true
+  allow_update_branch: true
+  delete_branch_on_merge: true
+  merge_commit_title: MERGE_MESSAGE
+  merge_commit_message: PR_TITLE
+  squash_merge_commit_title: PR_TITLE
+  squash_merge_commit_message: BLANK
+  web_commit_signoff_required: true
+repositories:
+  ".github":
+    has_wiki: true
+    allow_merge_commit: true
+    allow_rebase_merge: true
+    allow_auto_merge: false
+    allow_update_branch: false
+    delete_branch_on_merge: false
+    squash_merge_commit_title: COMMIT_OR_PR_TITLE
+    squash_merge_commit_message: COMMIT_MESSAGES
+  adsb-receiver-api:
+    description: "ADS-B receiver server component for the MyPreflight platform. Server listens for position reports over HTTP, from flight-simulator-based transponders."
+    homepage_url: "https://adsb.mypreflight.io"
+  aerolopa-provider:
+    description: "AeroLOPA seat map fetcher for MyPreflight platform."
+    squash_merge_commit_title: COMMIT_OR_PR_TITLE
+    squash_merge_commit_message: COMMIT_MESSAGES
+  api:
+    description: "The backend service of MyPreflight platform, serves the REST API and the live flight event stream that the web app, and the transponder companion run on."
+    homepage_url: "https://api.mypreflight.io"
+    has_wiki: true
+    allow_auto_merge: false
+    squash_merge_commit_title: COMMIT_OR_PR_TITLE
+    squash_merge_commit_message: COMMIT_MESSAGES
+  app:
+    description: "Web app of MyPreflight platform, the electronic flight board: dispatch, briefing, check-in and live tracking, in the browser."
+    homepage_url: "https://app.mypreflight.io"
+    allow_auto_merge: false
+  github-iac:
+    description: "OpenTofu configuration of the MyPreflight GitHub organization"
+    has_issues: false
+    has_projects: false
+    squash_merge_commit_message: PR_BODY
+    vulnerability_alerts: true
+    dependabot_security_updates: true
+    actions:
+      default_token_permissions: read
+      sha_pinning_required: true
+      allowed: ["mypreflight/*", "opentofu/setup-opentofu@*", "gi-org-pl/report-tofu-plan-action@*"]
+  landing:
+    description: "Landing page of MyPreflight project"
+    homepage_url: "https://mypreflight.io"
+  oceanic-tracks-provider:
+    description: "Oceanic tracks fetcher for MyPreflight platform."
+    allow_auto_merge: false
+    allow_update_branch: false
+    squash_merge_commit_title: COMMIT_OR_PR_TITLE
+    squash_merge_commit_message: COMMIT_MESSAGES
+  osm-provider:
+    description: "OSM airport data processor for MyPreflight platform."
+    homepage_url: "https://mypreflight.io"
+  postcard-generator:
+    description: "City postcard image generator, that is used by MyPreflight platform as a unique collectibles."
+  product:
+    description: "MyPreflight knowledge base: product decisions, standards, architecture and brand."
+    has_issues: false
+  transponder-app:
+    description: "Desktop companion feeding simulator positions to MyPreflight and publishing Discord rich presence"
+    homepage_url: "https://mypreflight.io"
+    has_wiki: true
+    allow_auto_merge: false
+    allow_update_branch: false
+    squash_merge_commit_title: COMMIT_OR_PR_TITLE
+    squash_merge_commit_message: COMMIT_MESSAGES

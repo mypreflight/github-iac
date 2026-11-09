@@ -1,0 +1,5 @@
+# Teams, keyed by slug. Up to three levels of nesting (use `parent: <slug>`).
+# maintainers/members: member IDs from config/members.yaml, one per line; authoritative per team.
+# repositories: <repo>: pull | triage | push | maintain | admin | <custom role>
+
+teams: {}
