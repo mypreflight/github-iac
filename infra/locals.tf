@@ -105,4 +105,18 @@ locals {
     for name, repo in local.repositories_config.repositories :
     name => merge(local.repository_defaults, repo)
   }, {})
+
+  github_actions_integration_id = 15368
+
+  protected_repositories = {
+    for name, repo in local.repositories : name => {
+      required_checks = try([for check in repo.required_checks : check], [])
+      merge_methods = concat(
+        try(repo.allow_merge_commit, true) ? ["merge"] : [],
+        try(repo.allow_squash_merge, true) ? ["squash"] : [],
+        try(repo.allow_rebase_merge, true) ? ["rebase"] : [],
+      )
+    }
+    if try(repo.branch_protection, false) == true && try(repo.archived, false) != true
+  }
 }
