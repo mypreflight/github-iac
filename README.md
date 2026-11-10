@@ -8,7 +8,7 @@ Everything is described in four YAML files; OpenTofu turns them into GitHub sett
 | `config/organization.yaml` | Org profile, member privileges, security defaults for new repos, optional default-branch ruleset |
 | `config/members.yaml` | Who is in the org and who is an owner |
 | `config/teams.yaml` | Teams (up to 3 levels), their maintainers/members (by member ID), and their repository access |
-| `config/repositories.yaml` | Every repository: description, topics, visibility, features, merge settings, archived |
+| `config/repositories.yaml` | Every repository: description, topics, visibility, features, merge settings, archived, default-branch ruleset and its required checks |
 
 Changes go through pull requests: the **plan** workflow comments the exact diff on the PR,
 merging to `main` runs **apply**, and a nightly **drift** job fails if anyone changed the org by hand.
@@ -24,8 +24,8 @@ infra/                       OpenTofu root module — run every tofu command fro
   members.tf                 github_membership
   teams.tf                   github_team, github_team_members, github_team_repository
   repositories.tf            github_repository
-  security.tf                Dependabot, Actions permissions, the github-iac plan ruleset
-  rulesets.tf                github_organization_ruleset (optional)
+  security.tf                Dependabot, Actions permissions
+  rulesets.tf                github_repository_ruleset per repository, github_organization_ruleset (optional)
   checks.tf                  config sanity checks (warnings in plan)
   versions.tf                provider, S3 backend, state encryption
   backend.hcl                state bucket and region (not secret, committed)
@@ -45,7 +45,7 @@ git push -u origin main
 ```
 
 Public, because the organization is on GitHub Free, where repository rulesets only apply to public
-repositories, and the "Require a passing plan" ruleset in `infra/security.tf` is what keeps unplanned
+repositories, and github-iac's ruleset, which requires the `plan` check, is what keeps unplanned
 changes out of `main`. Everything in `config/` (the billing email included) and every plan comment is
 therefore public.
 
@@ -168,9 +168,21 @@ and, if it needs team access, give a team access in `teams.yaml` (`my-new-servic
 (`prevent_destroy`); to stop managing one, remove it from YAML and run
 `tofu state rm 'github_repository.this["name"]'`.
 
-**Protect default branches everywhere** — `default_branch_ruleset` in `organization.yaml` creates an
-organization ruleset, which needs GitHub Team. On GitHub Free, setting `enabled: true` makes the apply
-fail; protect a single repository with a `github_repository_ruleset` instead (see `infra/security.tf`).
+**Default-branch protection** — every repository gets the same `Main branch protection` ruleset
+(`infra/rulesets.tf`): the branch can't be deleted or force-pushed, changes arrive through pull requests
+with every conversation resolved and only the merge methods the repository allows, and the checks in
+`required_checks` must pass on a branch that is up to date. `required_checks` defaults to
+`[files, code]` and names GitHub Actions jobs, so set it per repository to the jobs its pull requests
+report (a matrix job reports one check per entry, such as `code (seatmap)`). `branch_protection: false`
+leaves a repository without one.
+
+```yaml
+  my-service:
+    required_checks: [files, code, executable]
+```
+
+`default_branch_ruleset` in `organization.yaml` creates an organization ruleset on top, which needs
+GitHub Team. On GitHub Free, setting `enabled: true` makes the apply fail.
 
 **Harden a repository** — these optional keys in `config/repositories.yaml` are managed only for
 repos that set them (all are free on public repositories):
@@ -200,9 +212,10 @@ repositories. Secret scanning and push protection are not managed here.
 - Nested teams inherit their parent's repository access. A child team's `repositories` lists only
   what it gets on top of that (an extra repo, or a higher permission); revoking a repo from the parent
   revokes it from the children too.
-- Outside collaborators, Actions secrets, webhooks, GitHub App installations (DigitalOcean) and other
-  per-repo rulesets are not managed yet; the provider supports most of them
-  (`github_repository_collaborators`, `github_actions_organization_secret`,
-  `github_organization_webhook`, `github_repository_ruleset`) if you want to extend this.
+- Outside collaborators, Actions secrets, webhooks and GitHub App installations (DigitalOcean) are not
+  managed yet; the provider supports most of them (`github_repository_collaborators`,
+  `github_actions_organization_secret`, `github_organization_webhook`) if you want to extend this.
+- A rule added to a ruleset by hand is removed by the next apply, and so is any rule type the provider
+  doesn't know yet, such as code quality.
 - If applying `github_organization_settings` fails with the App token (some fields need an owner),
   set `manage_settings: false` or apply that part once locally with an owner's token.

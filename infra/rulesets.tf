@@ -44,3 +44,51 @@ resource "github_organization_ruleset" "default_branch" {
     }
   }
 }
+
+resource "github_repository_ruleset" "default_branch" {
+  for_each = local.protected_repositories
+
+  name        = "Main branch protection"
+  repository  = github_repository.this[each.key].name
+  target      = "branch"
+  enforcement = "active"
+
+  conditions {
+    ref_name {
+      include = ["~DEFAULT_BRANCH"]
+      exclude = []
+    }
+  }
+
+  rules {
+    deletion         = true
+    non_fast_forward = true
+
+    pull_request {
+      allowed_merge_methods             = each.value.merge_methods
+      required_approving_review_count   = 0
+      dismiss_stale_reviews_on_push     = false
+      require_code_owner_review         = false
+      require_last_push_approval        = false
+      required_review_thread_resolution = true
+    }
+
+    dynamic "required_status_checks" {
+      for_each = length(each.value.required_checks) > 0 ? [each.value.required_checks] : []
+
+      content {
+        strict_required_status_checks_policy = true
+        do_not_enforce_on_create             = false
+
+        dynamic "required_check" {
+          for_each = required_status_checks.value
+
+          content {
+            context        = required_check.value
+            integration_id = local.github_actions_integration_id
+          }
+        }
+      }
+    }
+  }
+}

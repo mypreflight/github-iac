@@ -51,28 +51,3 @@ resource "github_actions_repository_permissions" "this" {
     }
   }
 }
-
-resource "github_repository_ruleset" "github_iac_plan" {
-  name        = "Require a passing plan"
-  repository  = github_repository.this["github-iac"].name
-  target      = "branch"
-  enforcement = "active"
-
-  conditions {
-    ref_name {
-      include = ["~DEFAULT_BRANCH"]
-      exclude = []
-    }
-  }
-
-  rules {
-    required_status_checks {
-      strict_required_status_checks_policy = true
-
-      required_check {
-        context        = "plan"
-        integration_id = 15368
-      }
-    }
-  }
-}
